@@ -60,7 +60,6 @@ class ScrapeTweets:
 
         self.driver.get('https://twitter.com/login')
 
-
     def __repr__(self):
         return f'{self.__class__.__name__}(Data Entries={len(self.df)})'
 
@@ -213,7 +212,6 @@ class ScrapeTweets:
                 else:
                     last_position = curr_position
                     break
-
 
     def save_tweet_to_csv(self):
         for tweet in self.tweets_buffer:
