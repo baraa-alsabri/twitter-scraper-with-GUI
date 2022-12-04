@@ -95,8 +95,6 @@ class ScrapeTweets:
     
         print(f'[*] Logged In As {self.username}\n')
 
-
-
     def search(self):
         for date in self.search_range:
             query_from_date = date - timedelta(days=1)
@@ -137,50 +135,53 @@ class ScrapeTweets:
             sleep(5)
             self.scroll()
 
-
     def get_tweet_data(self , card): 
-        """Extract data from tweet card"""
-        username = card.find_element(By.XPATH,'.//span').text
+        for _ in range(3): # Sometimes it does not load tweet imdetlay 
+            try:
+                """Extract data from tweet card"""
+                username = card.find_element(By.XPATH,'.//span').text
 
-        try:
-            handle = card.find_element(By.XPATH,'.//span[contains(text(), "@")]').text
-        except NoSuchElementException:
-            handle = ''
-        
-        try:
-            postdate_and_time = card.find_element(By.XPATH,'.//time').get_attribute('datetime')
-        except NoSuchElementException:
-            postdate_and_time = ''
-        
-        text = ''
-        hashtags = ''
-
-
-        tweet_content = card.find_element(By.XPATH,'.//div[@data-testid="tweetText"]')
-        
-        tweet_text = tweet_content.find_elements(By.TAG_NAME , 'span')
-        for word in tweet_text:
-            text += word.text
-
-        if text == '': 
-            return 'There is no tweet'
-
-        tweet_hashtags = tweet_content.find_elements(By.TAG_NAME , 'a')
-        for hashtag in tweet_hashtags:
-            if '#' in hashtag.text: #to excilude any other links
-                hashtags += f'{hashtag.text}\n'
+                try:
+                    handle = card.find_element(By.XPATH,'.//span[contains(text(), "@")]').text
+                except NoSuchElementException:
+                    handle = ''
+                
+                try:
+                    postdate_and_time = card.find_element(By.XPATH,'.//time').get_attribute('datetime')
+                except NoSuchElementException:
+                    postdate_and_time = ''
+                
+                text = ''
+                hashtags = ''
 
 
-        reply_count = card.find_element(By.XPATH,'.//div[@data-testid="reply"]').text
-        retweet_count = card.find_element(By.XPATH,'.//div[@data-testid="retweet"]').text
-        like_count = card.find_element(By.XPATH,'.//div[@data-testid="like"]').text
-        
-        
-        tweet = [username, handle, postdate_and_time ,text ,hashtags, reply_count, retweet_count, like_count]
-        
-        if tweet not in self.tweets_buffer:
-            self.tweets_buffer.append(tweet) 
-        
+                tweet_content = card.find_element(By.XPATH,'.//div[@data-testid="tweetText"]')
+                
+                tweet_text = tweet_content.find_elements(By.TAG_NAME , 'span')
+                for word in tweet_text:
+                    text += word.text
+
+                if text == '': 
+                    return 'There is no tweet'
+
+                tweet_hashtags = tweet_content.find_elements(By.TAG_NAME , 'a')
+                for hashtag in tweet_hashtags:
+                    if '#' in hashtag.text: #to excilude any other links
+                        hashtags += f'{hashtag.text}\n'
+
+
+                reply_count = card.find_element(By.XPATH,'.//div[@data-testid="reply"]').text
+                retweet_count = card.find_element(By.XPATH,'.//div[@data-testid="retweet"]').text
+                like_count = card.find_element(By.XPATH,'.//div[@data-testid="like"]').text
+                
+                
+                tweet = [username, handle, postdate_and_time ,text ,hashtags, reply_count, retweet_count, like_count]
+                
+                if tweet not in self.tweets_buffer:
+                    self.tweets_buffer.append(tweet) 
+            except Exception as e:
+                print(e)
+                sleep(0.5)
 
     def scroll(self):
         # get all tweets on the page
