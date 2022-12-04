@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 import pandas as pd
 import re
@@ -129,8 +128,6 @@ class ScrapeTweets:
             search_input.send_keys(self.search_query)
             search_input.send_keys(Keys.RETURN) # Press Enter
 
-            self.driver.execute_script("document.body.style.zoom='25%'") # Zoom out the browser to show as much tweets as possible
-
             sleep(5)
             self.scroll()
 
@@ -192,7 +189,7 @@ class ScrapeTweets:
         while scrolling:
             page_cards = self.driver.find_elements(By.CSS_SELECTOR, '[data-testid="tweet"]')
 
-            for card in page_cards[-15:]:
+            for card in page_cards[-5:]:
                 self.get_tweet_data(card)
                     
             scroll_attempt = 0
