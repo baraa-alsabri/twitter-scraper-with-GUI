@@ -33,7 +33,6 @@ class ScrapeTweets:
 
         options = webdriver.ChromeOptions()
         options.add_argument('--start-maximized')
-        options.add_argument('--disable-gpu')
         options.add_argument("--disable-notifications")
 
 
@@ -229,3 +228,5 @@ class ScrapeTweets:
                     'like_count': [tweet[7]]
                 })
             df.to_csv(f'{self.data_file_name}.csv', mode='a',index=False ,header=False)
+            
+        self.tweets_buffer.clear()
