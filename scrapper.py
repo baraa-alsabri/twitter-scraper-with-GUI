@@ -70,7 +70,7 @@ class ScrapeTweets:
         next_button = self.driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
         next_button.click()
 
-        
+        sleep(2)
         # If verfcation needed
         visable_spans = self.driver.find_elements(By.TAG_NAME , 'span')
         visable_texts = []
@@ -125,7 +125,7 @@ class ScrapeTweets:
             search_input.send_keys(self.search_query)
             search_input.send_keys(Keys.RETURN) # Press Enter
 
-            sleep(5)
+            sleep(3)
             self.scroll()
 
 
@@ -136,8 +136,8 @@ class ScrapeTweets:
 
         while scrolling:
             tweet_cards = BeautifulSoup(self.driver.execute_script('return document.documentElement.outerHTML'), 'html.parser').select('[data-testid="tweet"]')
-           
-            for tweet_card in tweet_cards[-3:]: # In the normal situation twitter won't load more than five tweets except in a large or vertical monitors or zoomed out browser ,feel free to play around with the number to be sure that it reaches every twwet in the timeline
+             
+            for tweet_card in tweet_cards[-10:]: # In the normal situation twitter won't load more than ten tweets except in a large or vertical monitors or zoomed out browser (I am note sure), 10 was perfect for me ,feel free to play around with the number to be sure that it reaches every twwet in the timeline
                 self.get_tweet_data(tweet_card)
 
             scroll_attempt = 0

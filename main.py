@@ -41,7 +41,7 @@ Password_entry.grid(column=1,row=3)
 
 
 #hashtags.
-keywords_label = Label(text='Keyword(s) or hashtag(s):')
+keywords_label = Label(text='Keyword(s):')
 keywords_label.grid(column=0,row=4)
 keywords_entry = Entry(width=50)
 keywords_entry.grid(column=1,row=4)
