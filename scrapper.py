@@ -2,8 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+from tkinter import messagebox
 import pandas as pd
-import re
 from datetime import datetime , timedelta
 from time import sleep
 from random import randint
@@ -11,23 +11,26 @@ from bs4 import BeautifulSoup
 
 
 class ScrapeTweets:
-    def __init__(self, username, email , password ,  hashtags , chrome_webdriver_path , from_date, to_date):
+    def __init__(self, username, email , password ,  keywords , chrome_webdriver_path , from_date, to_date):
         self.username = username
         self.email = email
         self.password = password
         
-        self.hashtags = hashtags.replace('\n','') # Clear self.search_query from any unexpacted chars
-        
-        delta:timedelta = to_date - from_date
-
-        self.search_range = []
-
-        for i in range(delta.days + 1):
-            self.search_range.append(from_date + timedelta(days=i))
-
-        self.search_range.reverse() # to start searching from newest to oldest date
+        self.keywords = keywords.replace('\n','') # Clear self.search_query from any unexpacted chars
         
         self.tweets_buffer = []
+
+        self.search_range = []
+        
+        if from_date or to_date:
+            delta:timedelta = to_date - from_date
+
+            for i in range(delta.days + 1):
+                self.search_range.append(from_date + timedelta(days=i))
+
+        self.search_range.reverse() # to start searching from newest to oldest date
+        print(self.search_range)
+
 
 
         options = webdriver.ChromeOptions()
@@ -46,7 +49,7 @@ class ScrapeTweets:
                     })
         
         try:
-            self.data_file_name = self.hashtags
+            self.data_file_name = self.keywords
             csv_file.to_csv(f'{self.data_file_name}.csv' , index=False)
         except OSError: # Sometimes hashtags names may contain symbols that aren't allowed as a file name.
             self.data_file_name = randint(10000,1000000)
@@ -91,44 +94,52 @@ class ScrapeTweets:
         print(f'[*] Logged In As {self.username}\n')
 
     def search(self):
-        for date in self.search_range:
-            query_from_date = date - timedelta(days=1)
-            query_to_date = date
+        if len(self.search_range) > 0:
+            for date in self.search_range:
+                query_from_date = date - timedelta(days=1)
+                query_to_date = date
 
-            if query_from_date.month < 10:
-                from_month = f'0{query_from_date.month}'
-            else:
-                from_month = f'{query_from_date.month}'
-            
-            if query_from_date.day < 10:
-                from_day = f'0{query_from_date.day}'
-            else:
-                from_day = f'{query_from_date.day}'
+                if query_from_date.month < 10:
+                    from_month = f'0{query_from_date.month}'
+                else:
+                    from_month = f'{query_from_date.month}'
+                
+                if query_from_date.day < 10:
+                    from_day = f'0{query_from_date.day}'
+                else:
+                    from_day = f'{query_from_date.day}'
 
 
-            if query_to_date.month < 10:
-                to_month = f'0{query_to_date.month}'
-            else:
-                to_month = f'{query_to_date.month}'
-            
-            if query_to_date.day < 10:
-                to_day = f'0{query_to_date.day}'
-            else:
-                to_day = f'{query_to_date.day}'
-            
-            self.search_query = f'{self.hashtags} until:{query_to_date.year}-{to_month}-{to_day} since:{query_from_date.year}-{from_month}-{from_day}'
+                if query_to_date.month < 10:
+                    to_month = f'0{query_to_date.month}'
+                else:
+                    to_month = f'{query_to_date.month}'
+                
+                if query_to_date.day < 10:
+                    to_day = f'0{query_to_date.day}'
+                else:
+                    to_day = f'{query_to_date.day}'
+                
+                self.search_query = f'{self.keywords} until:{query_to_date.year}-{to_month}-{to_day} since:{query_from_date.year}-{from_month}-{from_day}'
 
+                search_input = self.driver.find_element(By.XPATH , '//input[@aria-label="Search query"]')
+                search_input.send_keys(Keys.CONTROL + 'a')
+                search_input.send_keys(Keys.DELETE)
+
+                search_input.send_keys(self.search_query)
+                search_input.send_keys(Keys.RETURN) # Press Enter
+
+                sleep(3)
+                self.scroll()
+        else:
+            self.search_query = f'{self.keywords}'
             search_input = self.driver.find_element(By.XPATH , '//input[@aria-label="Search query"]')
-            search_input.send_keys(Keys.CONTROL + 'a')
-            search_input.send_keys(Keys.DELETE)
-
             search_input.send_keys(self.search_query)
             search_input.send_keys(Keys.RETURN) # Press Enter
-
-            sleep(3)
+            sleep(15)
             self.scroll()
-
-
+        
+        messagebox.showinfo(title='Finished',message='Scraping Finished.')
     def scroll(self):
         # get all tweets on the page
         last_position = self.driver.execute_script("return window.pageYOffset;")
@@ -172,7 +183,11 @@ class ScrapeTweets:
             except NoSuchElementException:
                 postdate_and_time = None
             
-            tweet_text = tweet_card.select('[data-testid="tweetText"]')[0].find_all('span')
+            try:
+                tweet_text = tweet_card.select('[data-testid="tweetText"]')[0].find_all('span')
+            except IndexError:
+                pass
+            
             text = ''
 
             for word in tweet_text:

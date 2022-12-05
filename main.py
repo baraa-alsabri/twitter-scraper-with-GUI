@@ -73,26 +73,30 @@ def start_scraping():
     username = username_entry.get()
     email = email_entry.get()
     password = Password_entry.get()
-    hashtags = keywords_entry.get()
+    keywords = keywords_entry.get()
 
-    if username == '' or email == '' or password == '' or hashtags == '' or chrome_webdriver_path == None:
+    if username == '' or email == '' or password == '' or keywords == '' or chrome_webdriver_path == None:
         messagebox.showerror('Missing failed(s)' , 'Be Sure to Fill Out all the Faileds and choese chrome WebDriver.')
     else:    
-        if to_date and from_date:
+        if use_date_filter_varible.get() == True:
+            if from_date == None:
+                from_date = datetime(year=2006 , month= 1 , day= 1).date()
+            if to_date == None:
+                to_date = datetime.today().date()
+                
             if to_date < from_date or to_date == from_date:
                 messagebox.showerror('Dates Error' , 'The Start Date must be before the End Date ,also they can not be equivalent.')
-    
-        if from_date == None:
-            from_date = datetime(year=2006 , month= 1 , day= 1).date()
-        if to_date == None:
-            to_date = datetime.today().date()
+        else:
+            from_date = None
+            to_date = None
+
 
         while True:
             scraper = ScrapeTweets(
                 username = username,
                 email = email,
                 password = password,
-                hashtags = hashtags, 
+                keywords = keywords, 
                 chrome_webdriver_path = chrome_webdriver_path,
                 from_date = from_date,
                 to_date = to_date)
@@ -145,13 +149,17 @@ def start_scraping_thread():
     Thread(target = start_scraping).start()
 
 
+use_date_filter_varible = IntVar(value=True)
+use_date_filter_checkbox = Checkbutton(window, text='Use dates filter',variable=use_date_filter_varible, onvalue=True, offvalue=False)
+use_date_filter_checkbox.grid(column=0,row=7)
+
 from_date_label = Label(text='From Date (Optional)')
-from_date_label.grid(column=0,row=7)
-Button(window, text='Set', command=set_from_date).grid(column=2, row=7)
+from_date_label.grid(column=0,row=8)
+Button(window, text='Set', command=set_from_date).grid(column=2, row=8)
 
 to_date_label = Label(text='To Date (Optional)')
-to_date_label.grid(column=0,row=8)
-Button(window, text='Set', command=set_to_date).grid(column=2, row=8)
+to_date_label.grid(column=0,row=9)
+Button(window, text='Set', command=set_to_date).grid(column=2, row=9)
 
 
 start_button = Button(text = 'Start' , command=start_scraping_thread)
