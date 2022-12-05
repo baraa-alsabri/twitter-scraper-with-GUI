@@ -21,7 +21,7 @@ website_label.grid(column=0,row=1)
 username_entry = Entry(width=35)
 username_entry.focus() # to make the typer starts in the website entry when we start the program.
 username_entry.insert(0,'@')
-username_entry.grid(column=1,row=1,columnspan=2)
+username_entry.grid(column=1,row=1)
 
 #Email.
 email_label = Label(text='Email:')
@@ -29,7 +29,7 @@ email_label.grid(column=0,row=2)
 
 email_entry = Entry(width=35)
                         
-email_entry.grid(column=1,row=2,columnspan=2)
+email_entry.grid(column=1,row=2)
 
 
 #Password.
