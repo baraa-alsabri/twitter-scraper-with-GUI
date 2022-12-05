@@ -81,8 +81,6 @@ class ScrapeTweets:
             username_verfcation_input = self.driver.find_element(By.TAG_NAME , 'input')
             username_verfcation_input.send_keys(self.username)
             username_verfcation_input.send_keys(Keys.RETURN)
-            
-
         
         # Password
         login_password_input = self.driver.find_element(By.XPATH,"//input[@name='password']")
@@ -135,8 +133,6 @@ class ScrapeTweets:
         # get all tweets on the page
         last_position = self.driver.execute_script("return window.pageYOffset;")
         scrolling = True
-
-        sleep(2)
 
         while scrolling:
             tweet_cards = BeautifulSoup(self.driver.execute_script('return document.documentElement.outerHTML'), 'html.parser').select('[data-testid="tweet"]')
