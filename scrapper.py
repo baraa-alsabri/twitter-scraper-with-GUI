@@ -164,7 +164,6 @@ class ScrapeTweets:
     def get_tweet_data(self , tweet_card): 
             """Extract data from tweet card"""
             user_data = tweet_card.find_all('span', attrs={"class" : "css-901oao css-16my406 r-poiln3 r-bcqeeo r-qvutc0"})
-            
             username = user_data[0].text
 
             try:
@@ -206,5 +205,4 @@ class ScrapeTweets:
                     'like_count': [tweet[6]]
                 })
             df.to_csv(f'{self.data_file_name}.csv', mode='a',index=False ,header=False)
-        sleep(9000)
         self.tweets_buffer.clear()
