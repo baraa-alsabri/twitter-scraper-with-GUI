@@ -129,7 +129,8 @@ class ScrapeTweets:
 
             sleep(5)
             self.scroll()
-        
+
+
     def scroll(self):
         # get all tweets on the page
         last_position = self.driver.execute_script("return window.pageYOffset;")
@@ -140,13 +141,13 @@ class ScrapeTweets:
         while scrolling:
             tweet_cards = BeautifulSoup(self.driver.execute_script('return document.documentElement.outerHTML'), 'html.parser').select('[data-testid="tweet"]')
            
-            for tweet_card in tweet_cards[-5:]: # In the normal situation twitter won't load more than five tweets except in a large or vertical monitors or zoomed out browser ,feel free to play around with the number to be sure that it reaches every twwet in the timeline
+            for tweet_card in tweet_cards[-3:]: # In the normal situation twitter won't load more than five tweets except in a large or vertical monitors or zoomed out browser ,feel free to play around with the number to be sure that it reaches every twwet in the timeline
                 self.get_tweet_data(tweet_card)
 
             scroll_attempt = 0
             while True:
                 self.driver.execute_script('window.scrollBy(0, 800);')
-                sleep(2)
+                sleep(0.5) # Change it to feet your internet speed
                 curr_position = self.driver.execute_script("return window.pageYOffset;")
                 if last_position == curr_position:
                     scroll_attempt += 1
@@ -206,5 +207,5 @@ class ScrapeTweets:
                     'like_count': [tweet[6]]
                 })
             df.to_csv(f'{self.data_file_name}.csv', mode='a',index=False ,header=False)
-            
+        sleep(9000)
         self.tweets_buffer.clear()
