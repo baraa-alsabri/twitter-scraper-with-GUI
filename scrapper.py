@@ -147,7 +147,6 @@ class ScrapeTweets:
             scroll_attempt = 0
             while True:
                 self.driver.execute_script('window.scrollBy(0, 800);')
-                sleep(0.5) # Change it to feet your internet speed
                 curr_position = self.driver.execute_script("return window.pageYOffset;")
                 if last_position == curr_position:
                     scroll_attempt += 1
