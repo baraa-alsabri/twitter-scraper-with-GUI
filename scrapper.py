@@ -7,7 +7,7 @@ import re
 from datetime import datetime , timedelta
 from time import sleep
 from random import randint
-
+from bs4 import BeautifulSoup
 
 
 class ScrapeTweets:
@@ -25,7 +25,7 @@ class ScrapeTweets:
         for i in range(delta.days + 1):
             self.search_range.append(from_date + timedelta(days=i))
 
-        self.search_range.reverse() # to start searching from newest to oldest
+        self.search_range.reverse() # to start searching from newest to oldest date
         
         self.tweets_buffer = []
 
@@ -40,16 +40,15 @@ class ScrapeTweets:
                     'handle': [],
                     'date': [],
                     'text': [],
-                    'hashtags': [],
                     'reply_count': [],
                     'retweet_count': [],
                     'like_count': [],
-                            })
+                    })
         
         try:
             self.data_file_name = self.hashtags
             csv_file.to_csv(f'{self.data_file_name}.csv' , index=False)
-        except OSError: # Sometimes hashtag's names may contain chars that aren't allowed as file name.
+        except OSError: # Sometimes hashtags names may contain symbols that aren't allowed as a file name.
             self.data_file_name = randint(10000,1000000)
             csv_file.to_csv(f'{self.data_file_name}.csv' , index=False)       
 
@@ -130,55 +129,7 @@ class ScrapeTweets:
 
             sleep(5)
             self.scroll()
-
-    def get_tweet_data(self , card): 
-        for _ in range(3): # Sometimes it does not load tweet imdetlay 
-            try:
-                """Extract data from tweet card"""
-                username = card.find_element(By.XPATH,'.//span').text
-
-                try:
-                    handle = card.find_element(By.XPATH,'.//span[contains(text(), "@")]').text
-                except NoSuchElementException:
-                    handle = ''
-                
-                try:
-                    postdate_and_time = card.find_element(By.XPATH,'.//time').get_attribute('datetime')
-                except NoSuchElementException:
-                    postdate_and_time = ''
-                
-                text = ''
-                hashtags = ''
-
-
-                tweet_content = card.find_element(By.XPATH,'.//div[@data-testid="tweetText"]')
-                
-                tweet_text = tweet_content.find_elements(By.TAG_NAME , 'span')
-                for word in tweet_text:
-                    text += word.text
-
-                if text == '': 
-                    return 'There is no tweet'
-
-                tweet_hashtags = tweet_content.find_elements(By.TAG_NAME , 'a')
-                for hashtag in tweet_hashtags:
-                    if '#' in hashtag.text: #to excilude any other links
-                        hashtags += f'{hashtag.text}\n'
-
-
-                reply_count = card.find_element(By.XPATH,'.//div[@data-testid="reply"]').text
-                retweet_count = card.find_element(By.XPATH,'.//div[@data-testid="retweet"]').text
-                like_count = card.find_element(By.XPATH,'.//div[@data-testid="like"]').text
-                
-                
-                tweet = [username, handle, postdate_and_time ,text ,hashtags, reply_count, retweet_count, like_count]
-                
-                if tweet not in self.tweets_buffer:
-                    self.tweets_buffer.append(tweet) 
-            except Exception as e:
-                print(e)
-                sleep(0.5)
-
+        
     def scroll(self):
         # get all tweets on the page
         last_position = self.driver.execute_script("return window.pageYOffset;")
@@ -187,11 +138,11 @@ class ScrapeTweets:
         sleep(2)
 
         while scrolling:
-            page_cards = self.driver.find_elements(By.CSS_SELECTOR, '[data-testid="tweet"]')
+            tweet_cards = BeautifulSoup(self.driver.execute_script('return document.documentElement.outerHTML'), 'html.parser').select('[data-testid="tweet"]')
+           
+            for tweet_card in tweet_cards[-5:]: # In the normal situation twitter won't load more than five tweets except in a large or vertical monitors or zoomed out browser ,feel free to play around with the number to be sure that it reaches every twwet in the timeline
+                self.get_tweet_data(tweet_card)
 
-            for card in page_cards[-5:]:
-                self.get_tweet_data(card)
-                    
             scroll_attempt = 0
             while True:
                 self.driver.execute_script('window.scrollBy(0, 800);')
@@ -210,18 +161,49 @@ class ScrapeTweets:
                     last_position = curr_position
                     break
 
+    def get_tweet_data(self , tweet_card): 
+            """Extract data from tweet card"""
+            user_data = tweet_card.find_all('span', attrs={"class" : "css-901oao css-16my406 r-poiln3 r-bcqeeo r-qvutc0"})
+            
+            username = user_data[0].text
+
+            try:
+                handle = user_data[1].text
+            except NoSuchElementException: # If it's a sponsored tweet
+                handle = None 
+
+            try:
+                postdate_and_time = tweet_card.find('time').attrs['datetime']
+            except NoSuchElementException:
+                postdate_and_time = None
+            
+            tweet_text = tweet_card.select('[data-testid="tweetText"]')[0].find_all('span')
+            text = ''
+
+            for word in tweet_text:
+                text += word.text
+
+            reply_count = tweet_card.select('[data-testid="reply"]')[0].text
+            retweet_count = tweet_card.select('[data-testid="retweet"]')[0].text
+            like_count = tweet_card.select('[data-testid="like"]')[0].text
+            
+            tweet = [username, handle, postdate_and_time ,text , reply_count, retweet_count, like_count]
+
+                        
+            if tweet not in self.tweets_buffer: # to exclude repeated tweets
+                self.tweets_buffer.append(tweet) 
+
     def save_tweet_to_csv(self):
         for tweet in self.tweets_buffer:
             df = pd.DataFrame({
                     'username': [tweet[0]],
                     'handle': [tweet[1]],
                     # Convert date and time from string to datetime object i.e '2022-11-28T23:59:09.000Z'
-                    'date': datetime.strptime(tweet[2].replace('Z','') , '%Y-%m-%dT%H:%M:%S.%f'),
+                    'date': datetime.strptime(tweet[2] , '%Y-%m-%dT%H:%M:%S.%fZ'),
                     'text': [tweet[3]],
-                    'hashtags': [tweet[4]],
-                    'reply_count': [tweet[5]],
-                    'retweet_count': [tweet[6]],
-                    'like_count': [tweet[7]]
+                    'reply_count': [tweet[4]],
+                    'retweet_count': [tweet[5]],
+                    'like_count': [tweet[6]]
                 })
             df.to_csv(f'{self.data_file_name}.csv', mode='a',index=False ,header=False)
             
