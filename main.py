@@ -41,10 +41,10 @@ Password_entry.grid(column=1,row=3)
 
 
 #hashtags.
-hashtags_label = Label(text='Hashtag(s):')
-hashtags_label.grid(column=0,row=4)
-hashtags_entry = Entry(width=50)
-hashtags_entry.grid(column=1,row=4)
+keywords_label = Label(text='Keyword(s) or hashtag(s):')
+keywords_label.grid(column=0,row=4)
+keywords_entry = Entry(width=50)
+keywords_entry.grid(column=1,row=4)
 
 #Web driver path.
 chrome_webdriver_path = None
@@ -73,7 +73,7 @@ def start_scraping():
     username = username_entry.get()
     email = email_entry.get()
     password = Password_entry.get()
-    hashtags = hashtags_entry.get()
+    hashtags = keywords_entry.get()
 
     if username == '' or email == '' or password == '' or hashtags == '' or chrome_webdriver_path == None:
         messagebox.showerror('Missing failed(s)' , 'Be Sure to Fill Out all the Faileds and choese chrome WebDriver.')
