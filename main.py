@@ -40,7 +40,7 @@ Password_entry = Entry(show="*" , width=21)
 Password_entry.grid(column=1,row=3)
 
 
-#hashtags.
+#keywords.
 keywords_label = Label(text='Keyword(s):')
 keywords_label.grid(column=0,row=4)
 keywords_entry = Entry(width=50)
@@ -86,6 +86,7 @@ def start_scraping():
                 
             if to_date < from_date or to_date == from_date:
                 messagebox.showerror('Dates Error' , 'The Start Date must be before the End Date ,also they can not be equivalent.')
+                quit()
         else:
             from_date = None
             to_date = None

@@ -1,4 +1,4 @@
-from selenium import webdriver
+from selenium import te
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime , timedelta
 from time import sleep
 from random import randint
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup 
 
 
 class ScrapeTweets:
@@ -29,7 +29,6 @@ class ScrapeTweets:
                 self.search_range.append(from_date + timedelta(days=i))
 
         self.search_range.reverse() # to start searching from newest to oldest date
-        print(self.search_range)
 
 
 
@@ -140,6 +139,7 @@ class ScrapeTweets:
             self.scroll()
         
         messagebox.showinfo(title='Finished',message='Scraping Finished.')
+
     def scroll(self):
         # get all tweets on the page
         last_position = self.driver.execute_script("return window.pageYOffset;")
@@ -169,39 +169,39 @@ class ScrapeTweets:
                     break
 
     def get_tweet_data(self , tweet_card): 
-            """Extract data from tweet card"""
-            user_data = tweet_card.find_all('span', attrs={"class" : "css-901oao css-16my406 r-poiln3 r-bcqeeo r-qvutc0"})
-            username = user_data[0].text
+        """Extract data from tweet card"""
+        user_data = tweet_card.find_all('span', attrs={"class" : "css-901oao css-16my406 r-poiln3 r-bcqeeo r-qvutc0"})
+        username = user_data[0].text
 
-            try:
-                handle = user_data[1].text
-            except NoSuchElementException: # If it's a sponsored tweet
-                handle = None 
+        try:
+            handle = user_data[1].text
+        except NoSuchElementException: # If it's a sponsored tweet
+            handle = None 
 
-            try:
-                postdate_and_time = tweet_card.find('time').attrs['datetime']
-            except NoSuchElementException:
-                postdate_and_time = None
-            
-            try:
-                tweet_text = tweet_card.select('[data-testid="tweetText"]')[0].find_all('span')
-            except IndexError:
-                pass
-            
-            text = ''
+        try:
+            postdate_and_time = tweet_card.find('time').attrs['datetime']
+        except (NoSuchElementException , AttributeError):
+            postdate_and_time = None
+        
+        try:
+            tweet_text = tweet_card.select('[data-testid="tweetText"]')[0].find_all('span')
+        except IndexError:
+            pass
+        
+        text = ''
 
-            for word in tweet_text:
-                text += word.text
+        for word in tweet_text:
+            text += word.text
 
-            reply_count = tweet_card.select('[data-testid="reply"]')[0].text
-            retweet_count = tweet_card.select('[data-testid="retweet"]')[0].text
-            like_count = tweet_card.select('[data-testid="like"]')[0].text
-            
-            tweet = [username, handle, postdate_and_time ,text , reply_count, retweet_count, like_count]
+        reply_count = tweet_card.select('[data-testid="reply"]')[0].text
+        retweet_count = tweet_card.select('[data-testid="retweet"]')[0].text
+        like_count = tweet_card.select('[data-testid="like"]')[0].text
+        
+        tweet = [username, handle, postdate_and_time ,text , reply_count, retweet_count, like_count]
 
-                        
-            if tweet not in self.tweets_buffer: # to exclude repeated tweets
-                self.tweets_buffer.append(tweet) 
+                    
+        if tweet not in self.tweets_buffer: # to exclude repeated tweets
+            self.tweets_buffer.append(tweet) 
 
     def save_tweet_to_csv(self):
         for tweet in self.tweets_buffer:
