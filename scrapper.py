@@ -1,4 +1,4 @@
-from selenium import te
+from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
@@ -205,15 +205,27 @@ class ScrapeTweets:
 
     def save_tweet_to_csv(self):
         for tweet in self.tweets_buffer:
-            df = pd.DataFrame({
-                    'username': [tweet[0]],
-                    'handle': [tweet[1]],
-                    # Convert date and time from string to datetime object i.e '2022-11-28T23:59:09.000Z'
-                    'date': datetime.strptime(tweet[2] , '%Y-%m-%dT%H:%M:%S.%fZ'),
-                    'text': [tweet[3]],
-                    'reply_count': [tweet[4]],
-                    'retweet_count': [tweet[5]],
-                    'like_count': [tweet[6]]
-                })
+            if tweet[2]:
+                df = pd.DataFrame({
+                        'username': [tweet[0]],
+                        'handle': [tweet[1]],
+                        # Convert date and time from string to datetime object i.e '2022-11-28T23:59:09.000Z'
+                        'date': datetime.strptime(tweet[2] , '%Y-%m-%dT%H:%M:%S.%fZ'),
+                        'text': [tweet[3]],
+                        'reply_count': [tweet[4]],
+                        'retweet_count': [tweet[5]],
+                        'like_count': [tweet[6]]
+                    })
+            else:
+                df = pd.DataFrame({
+                        'username': [tweet[0]],
+                        'handle': [tweet[1]],
+                        # Convert date and time from string to datetime object i.e '2022-11-28T23:59:09.000Z'
+                        'date': None,
+                        'text': [tweet[3]],
+                        'reply_count': [tweet[4]],
+                        'retweet_count': [tweet[5]],
+                        'like_count': [tweet[6]]
+                        })
             df.to_csv(f'{self.data_file_name}.csv', mode='a',index=False ,header=False)
         self.tweets_buffer.clear()
